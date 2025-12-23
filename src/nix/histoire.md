@@ -15,7 +15,7 @@ mon intérêt était focalisé sur d'autres projets, et j'étais encore
 bien trop lié à [Archlinux](https://archlinux.fr/) (depuis 2008).
 
 J'ai commencé `Nix` en 2023 via [Devbox](devbox.md), qui a été convaincant,
-m'a poussé a essayer [home-manager](home-manager.md).
+ce que m'a motivé a essayer [home-manager](home-manager.md).
 
 1 an plus tard, je passai mon PC perso sous `NixOS` et commençait à écrire
 des [flakes](flakes.md).
