@@ -10,7 +10,7 @@
 
 Pour cela, il mobilise plusieurs concepts:
 
-1. C'est un langage de [programmation purement](https://fr.wikipedia.org/wiki/Programmation_purement_fonctionnelle) fonctionnel.
+1. C'est un langage de [programmation purement fonctionnel](https://fr.wikipedia.org/wiki/Programmation_purement_fonctionnelle).
 2. Il est [déclaratif](https://fr.wikipedia.org/wiki/Programmation_d%C3%A9clarative).
 3. Il est [paresseux](https://fr.wikipedia.org/wiki/%C3%89valuation_paresseuse)
 4. Le résultat de son travail est [reproductible](https://en.wikipedia.org/wiki/Reproducible_builds)
@@ -22,11 +22,9 @@ Pour cela, il mobilise plusieurs concepts:
 
 1. Une distribution GNU/Linux initiée en 2006.
 2. Une première version stable en 2013.
-3. Une OS entièrement créé de manière **déclarative**, et **reproductible**
+3. Un OS entièrement créé de manière **déclarative**, et **reproductible**
 
-`NixOS` est clairement un OVNI dans le monde `GNU/Linux` tant
-il se distingue.  
-
+`NixOS` est clairement un OVNI dans le monde `GNU/Linux`.  
 Son seul concurrent dans son domaine est [GNU/Guix](https://fr.wikipedia.org/wiki/GNU_Guix).
 
 
