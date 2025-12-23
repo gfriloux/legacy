@@ -12,14 +12,14 @@ informatique démarre rééllement.
 Et même si j'ai testé beaucoup de distros, il est possible
 de ce contenter de cette timeline grossière:
 
-| Année | Distro/OS       |
-|-------|-----------------|
-| 1997  | Linux Slackware |
-| 1998  | Redhat          |
-| 2000  | Debian          |
-| 2005  | Gentoo          |
-| 2008  | Archlinux       |
-| 2024  | NixOS           |
+| Année | Distro/OS |
+|-------|-----------|
+| 1997  | Slackware |
+| 1998  | Redhat    |
+| 2000  | Debian    |
+| 2005  | Gentoo    |
+| 2008  | Archlinux |
+| 2024  | NixOS     |
 
 ## Solutions à des problèmes
 
