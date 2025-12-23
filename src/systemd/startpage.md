@@ -18,6 +18,79 @@ La construction de l'image se fait donc en 3 étapes:
 2. Packager [retro-crt-startpage](https://scar45.github.io/retro-crt-startpage/index.html).
 3. Packager le service file.
 
+## Étapes de construction
+
+### littleweb
+
+Projet `rust` utilisant [Actix Web](https://actix.rs/) pour servir des
+fichiers statiques.
+
+A l'heure de l'écriture de cette page, le packaging de ce projet
+(compilation d'un binaire statique) se fait dans ce bloc:
+```nix
+littleweb = pkgs.rustPlatform.buildRustPackage (finalAttrs: {
+  pname = "littleweb";
+  version = "1.4.0";
+  src = pkgs.fetchFromGitHub {
+    owner = "gfriloux";
+    repo = "littleweb";
+    rev = "v1.4.0";
+    sha256 = "sha256-Y2u2z/N73S5kJnsojNjY5OHTncZujyd8pLjcVSX/Cv4=";
+  };
+  cargoHash = "sha256-B9iAE5ua1I7kIfX9tBnnp2ewAs4j5oD8ttQqeorF5Xo=";
+});
+```
+
+### retro-crt-startpage
+
+La startpage [retro-crt-startpage](https://scar45.github.io/retro-crt-startpage/index.html)
+que l'on souhaite servir en `HTTP`.  
+
+Réalisé par ce simple bloc:
+```nix
+website = pkgs.stdenv.mkDerivation rec {
+  title = "retro-crt-startpage";
+  description = "HTML5-based layout for a personalized retro CRT startpage.";
+  name = "retro-crt-startpage";
+  version = "1.3.1";
+  src = pkgs.fetchzip {
+    url = "https://github.com/scar45/retro-crt-startpage/releases/download/v1.3.1/retro-crt-startpage-v1.3.1-release.zip";
+    hash = "sha256-UmYyfEy2BVMavAdEqlEYNT5A6dPXuxViAZ18n1fxCfc=";
+  };
+  nativebuildInputs = [ pkgs.zip ];
+  installPhase = ''
+    mkdir -p $out
+    cp -r css fonts images js *.png *.html *.xml *.txt *.mp3 $out/
+    cp ${./links.json} $out/links.json
+  '';
+};
+```
+
+On note que l'on ajoute notre fichier `links.json` local
+au projet, qui n'en contient pas par défaut.
+
+### Portable service
+
+Construit l'image `.raw` compatible [portable service](portables.services.md).
+Elle référence le package `unit` que je ne paste pas ici, il s'agit
+du `service file` du service, que vous pouvez [trouver ici](https://github.com/gfriloux/retro-startpage/blob/0176aa731b4606d5c9ad29a4f2b96f15fc69a0e6/flake.nix#L61).
+
+```nix
+oci-systemd = pkgs.portableService {
+  pname = "retro-startpage";
+  inherit ( packages.website ) version;
+  units = [ packages.unit ];
+  contents = with pkgs; [ packages.website ];
+  homepage = "https://github.com/gfriloux/retro-startpage";
+};
+```
+
+## Construction du projet
+
+```
+nix build .#oci-systemd
+```
+
 ## Résultat
 
 Nous avons une image `retro-startpage_1.3.1.raw` de `4.9MB`.  
