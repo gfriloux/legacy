@@ -16,6 +16,8 @@
 - [Systemd](systemd/index.md)
   - [systemctl](systemd/systemctl.md)
   - [portable services](systemd/portables.services.md)
+  - [Les cas pratiques](systemd/technical.md)
+    - [startpage](systemd/startpage.md)
 - [Docker](docker/index.md)
   - [Histoire](docker/histoire.md)
   - [traefik](docker/traefik.md)
