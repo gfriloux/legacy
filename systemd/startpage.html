@@ -194,6 +194,62 @@ très simple:</p>
 <li>Packager <a href="https://scar45.github.io/retro-crt-startpage/index.html">retro-crt-startpage</a>.</li>
 <li>Packager le service file.</li>
 </ol>
+<h2 id="Étapes-de-construction"><a class="header" href="#Étapes-de-construction">Étapes de construction</a></h2>
+<h3 id="littleweb"><a class="header" href="#littleweb">littleweb</a></h3>
+<p>Projet <code>rust</code> utilisant <a href="https://actix.rs/">Actix Web</a> pour servir des
+fichiers statiques.</p>
+<p>A l'heure de l'écriture de cette page, le packaging de ce projet
+(compilation d'un binaire statique) se fait dans ce bloc:</p>
+<pre><code class="language-nix">littleweb = pkgs.rustPlatform.buildRustPackage (finalAttrs: {
+  pname = "littleweb";
+  version = "1.4.0";
+  src = pkgs.fetchFromGitHub {
+    owner = "gfriloux";
+    repo = "littleweb";
+    rev = "v1.4.0";
+    sha256 = "sha256-Y2u2z/N73S5kJnsojNjY5OHTncZujyd8pLjcVSX/Cv4=";
+  };
+  cargoHash = "sha256-B9iAE5ua1I7kIfX9tBnnp2ewAs4j5oD8ttQqeorF5Xo=";
+});
+</code></pre>
+<h3 id="retro-crt-startpage"><a class="header" href="#retro-crt-startpage">retro-crt-startpage</a></h3>
+<p>La startpage <a href="https://scar45.github.io/retro-crt-startpage/index.html">retro-crt-startpage</a>
+que l'on souhaite servir en <code>HTTP</code>.</p>
+<p>Réalisé par ce simple bloc:</p>
+<pre><code class="language-nix">website = pkgs.stdenv.mkDerivation rec {
+  title = "retro-crt-startpage";
+  description = "HTML5-based layout for a personalized retro CRT startpage.";
+  name = "retro-crt-startpage";
+  version = "1.3.1";
+  src = pkgs.fetchzip {
+    url = "https://github.com/scar45/retro-crt-startpage/releases/download/v1.3.1/retro-crt-startpage-v1.3.1-release.zip";
+    hash = "sha256-UmYyfEy2BVMavAdEqlEYNT5A6dPXuxViAZ18n1fxCfc=";
+  };
+  nativebuildInputs = [ pkgs.zip ];
+  installPhase = ''
+    mkdir -p $out
+    cp -r css fonts images js *.png *.html *.xml *.txt *.mp3 $out/
+    cp ${./links.json} $out/links.json
+  '';
+};
+</code></pre>
+<p>On note que l'on ajoute notre fichier <code>links.json</code> local
+au projet, qui n'en contient pas par défaut.</p>
+<h3 id="portable-service"><a class="header" href="#portable-service">Portable service</a></h3>
+<p>Construit l'image <code>.raw</code> compatible <a href="portables.services.html">portable service</a>.
+Elle référence le package <code>unit</code> que je ne paste pas ici, il s'agit
+du <code>service file</code> du service, que vous pouvez <a href="https://github.com/gfriloux/retro-startpage/blob/0176aa731b4606d5c9ad29a4f2b96f15fc69a0e6/flake.nix#L61">trouver ici</a>.</p>
+<pre><code class="language-nix">oci-systemd = pkgs.portableService {
+  pname = "retro-startpage";
+  inherit ( packages.website ) version;
+  units = [ packages.unit ];
+  contents = with pkgs; [ packages.website ];
+  homepage = "https://github.com/gfriloux/retro-startpage";
+};
+</code></pre>
+<h2 id="construction-du-projet"><a class="header" href="#construction-du-projet">Construction du projet</a></h2>
+<pre><code>nix build .#oci-systemd
+</code></pre>
 <h2 id="résultat"><a class="header" href="#résultat">Résultat</a></h2>
 <p>Nous avons une image <code>retro-startpage_1.3.1.raw</code> de <code>4.9MB</code>.<br />
 Le service consomme <code>~10MB</code> de RAM.
