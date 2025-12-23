@@ -687,6 +687,44 @@ de bosser en <code>isolation</code>, avec <code>reproductibilité</code>.</p>
 <li><a href="https://systemd.io/PORTABLE_SERVICES/">Systemd - Portable services</a></li>
 <li><a href="https://0pointer.net/blog/walkthrough-for-portable-services.html">Walkthrough for Portable Services</a></li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="les-cas-pratiques-1"><a class="header" href="#les-cas-pratiques-1">Les cas pratiques</a></h1>
+<ul>
+<li><a href="systemd/./startpage.html">startpage</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="startpage"><a class="header" href="#startpage">Startpage</a></h1>
+<p><img src="systemd/startpage-preview-green.png" alt="startpage-preview-green" /></p>
+<p><a href="https://github.com/gfriloux/retro-startpage">Ce projet</a> est un exemple de comment nous pouvons créér un <a href="systemd/portables.services.html">portable service</a>
+très simple:</p>
+<ul>
+<li>Embarque un serveur web minimal (que l'on compile nous-même pour la demo).</li>
+<li>Embarque le site web de la startpage.</li>
+<li>Ajoute la database (<code>links.json</code>) des bookmarks.</li>
+<li>Tout le service est isolé dans un fichier <code>.raw</code>.</li>
+<li>Pas d'interactions avec d'autres services.</li>
+<li>Pas de <code>BindPaths</code>.</li>
+</ul>
+<p>La construction de l'image se fait donc en 3 étapes:</p>
+<ol>
+<li>Packager <a href="https://github.com/gfriloux/littleweb">littleweb</a>.</li>
+<li>Packager <a href="https://scar45.github.io/retro-crt-startpage/index.html">retro-crt-startpage</a>.</li>
+<li>Packager le service file.</li>
+</ol>
+<h2 id="résultat"><a class="header" href="#résultat">Résultat</a></h2>
+<p>Nous avons une image <code>retro-startpage_1.3.1.raw</code> de <code>4.9MB</code>.<br />
+Le service consomme <code>~10MB</code> de RAM.
+<code>systemd-analyze security</code> nous donne un score de <code>1.2</code>, ce qui est excellent.</p>
+<p>Du fait d'utiliser <a href="https://github.com/gfriloux/littleweb">littleweb</a>,
+que l'on compile <a href="https://en.wikipedia.org/wiki/Static_build">statiquement</a>,
+nous avons une image type <a href="https://docs.docker.com/dhi/core-concepts/distroless/">distroless</a>,
+<a href="https://wiki.archlinux.org/title/Chroot_(Fran%C3%A7ais)">chroot</a>,
+avec du <a href="https://github.com/samderkaoui/systemd-service-hardening">systemd hardening</a>,
+qu'il sera a priori très difficile d'exploiter!</p>
+<p>Un seul binaire executable: <a href="https://github.com/gfriloux/littleweb">littleweb</a>.</p>
+<p>En cas d'exploitation réussie, le service n'est pas <code>root</code>, n'accède pas
+au système de fichiers de l'hôte, c'est une coquille vide...</p>
+<p>Cette image est censée pouvoir s'executer sur toute distribution linux
+disposant de <code>systemd v239</code> <code>x86_64</code>, c'est pas mal niveau portabilité!</p>
+<p>Et biensûr, tout se passe dans <a href="https://github.com/gfriloux/retro-startpage/blob/main/flake.nix">flake.nix</a>!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="docker"><a class="header" href="#docker">Docker</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="histoire-2"><a class="header" href="#histoire-2">Histoire</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="traefik"><a class="header" href="#traefik">traefik</a></h1>

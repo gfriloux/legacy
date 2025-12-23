@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>portable services - My legacy</title>
+        <title>startpage - My legacy</title>
 
 
         <!-- Custom HTML head -->
@@ -176,63 +176,50 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="portable-services"><a class="header" href="#portable-services">portable services</a></h1>
-<p>Depuis la <code>v239</code> (2018) de <a href="https://systemd.io/">Systemd</a>, est introduit la
-notion de <a href="https://systemd.io/PORTABLE_SERVICES/">Portable Services</a>.</p>
-<h2 id="en-quoi-cela-va-nous-interesser"><a class="header" href="#en-quoi-cela-va-nous-interesser">En quoi cela va nous interesser?</a></h2>
-<h3 id="isolation"><a class="header" href="#isolation">Isolation</a></h3>
+                        <h1 id="startpage"><a class="header" href="#startpage">Startpage</a></h1>
+<p><img src="startpage-preview-green.png" alt="startpage-preview-green" /></p>
+<p><a href="https://github.com/gfriloux/retro-startpage">Ce projet</a> est un exemple de comment nous pouvons créér un <a href="portables.services.html">portable service</a>
+très simple:</p>
 <ul>
-<li>Il est possible de donner accès à une partie du système de fichiers
-du host via <code>BindPaths=</code> et <code>BindReadOnlyPaths=</code>, pour y stocker
-des datas dites "dynamiques", ressemblant aux volumes sur <code>Docker</code>.<br />
-Pour le reste, le service est <code>chroot</code>.</li>
-<li>Si le service est compromis, les accès au système sont restreints.</li>
-<li>Pour les mises à jour, on <code>detach</code> l'image <code>.raw</code> de la version précédente
-du service, et on <code>attach</code> la nouvelle version!<br />
-C'est tout!<br />
-Pas besoin de MAJ le système, votre démon est <strong>indépendant du
-système sur lequel il s'execute!</strong>.
-Vous pouvez MAJ le système sans impact sur le service, et inversement!</li>
+<li>Embarque un serveur web minimal (que l'on compile nous-même pour la demo).</li>
+<li>Embarque le site web de la startpage.</li>
+<li>Ajoute la database (<code>links.json</code>) des bookmarks.</li>
+<li>Tout le service est isolé dans un fichier <code>.raw</code>.</li>
+<li>Pas d'interactions avec d'autres services.</li>
+<li>Pas de <code>BindPaths</code>.</li>
 </ul>
-<p>Il va donc être possible d'avoir par exemple un dossier <code>/srv/startpage/</code>
-contenant:</p>
-<pre><code>.r--r--r-- root root 5.7 MB Thu Jan  1 01:00:01 1970  startpage_1.1.0.raw
-.r--r--r-- root root 5.7 MB Thu Jan  1 01:00:01 1970  startpage_1.2.0.raw
-.r--r--r-- root root 5.7 MB Thu Jan  1 01:00:01 1970  startpage_1.3.0.raw
-</code></pre>
-<p>et pouvoir upgrade le service dans le temps, et rollback sur l'image d'avant
-en cas de problème.</p>
-<h3 id="reproductibilité"><a class="header" href="#reproductibilité">Reproductibilité</a></h3>
-<ul>
-<li>On package notre démon dans une image <code>.raw</code>.
-Cette image embarque le service et toutes ses dépendances.
-Peu importe la distribution, il se comportera de la même manière.</li>
-<li><a href="nix/index.html">Nix</a> sait construire des images <a href="https://systemd.io/PORTABLE_SERVICES/">Portable Services</a>
-via <a href="https://ryantm.github.io/nixpkgs/builders/images/portableservice/#sec-pkgs-portableService">pkgs.portableService</a>.</li>
-</ul>
-<h3 id="léger"><a class="header" href="#léger">Léger</a></h3>
-<ul>
-<li>C'est plus léger que <code>docker</code> (pas de surcouche / isolation réseau).</li>
-</ul>
-<h2 id="pour-quelles-limites"><a class="header" href="#pour-quelles-limites">Pour quelles limites?</a></h2>
-<p>Lorsque l'on commence à vouloir faire discuter plusieurs services,
-<code>docker compose</code> (ou similaire) va s'imposer naturellement pour continuer
-de bosser en <code>isolation</code>, avec <code>reproductibilité</code>.</p>
-<h2 id="sources"><a class="header" href="#sources">Sources</a></h2>
-<ul>
-<li><a href="https://systemd.io/PORTABLE_SERVICES/">Systemd - Portable services</a></li>
-<li><a href="https://0pointer.net/blog/walkthrough-for-portable-services.html">Walkthrough for Portable Services</a></li>
-</ul>
+<p>La construction de l'image se fait donc en 3 étapes:</p>
+<ol>
+<li>Packager <a href="https://github.com/gfriloux/littleweb">littleweb</a>.</li>
+<li>Packager <a href="https://scar45.github.io/retro-crt-startpage/index.html">retro-crt-startpage</a>.</li>
+<li>Packager le service file.</li>
+</ol>
+<h2 id="résultat"><a class="header" href="#résultat">Résultat</a></h2>
+<p>Nous avons une image <code>retro-startpage_1.3.1.raw</code> de <code>4.9MB</code>.<br />
+Le service consomme <code>~10MB</code> de RAM.
+<code>systemd-analyze security</code> nous donne un score de <code>1.2</code>, ce qui est excellent.</p>
+<p>Du fait d'utiliser <a href="https://github.com/gfriloux/littleweb">littleweb</a>,
+que l'on compile <a href="https://en.wikipedia.org/wiki/Static_build">statiquement</a>,
+nous avons une image type <a href="https://docs.docker.com/dhi/core-concepts/distroless/">distroless</a>,
+<a href="https://wiki.archlinux.org/title/Chroot_(Fran%C3%A7ais)">chroot</a>,
+avec du <a href="https://github.com/samderkaoui/systemd-service-hardening">systemd hardening</a>,
+qu'il sera a priori très difficile d'exploiter!</p>
+<p>Un seul binaire executable: <a href="https://github.com/gfriloux/littleweb">littleweb</a>.</p>
+<p>En cas d'exploitation réussie, le service n'est pas <code>root</code>, n'accède pas
+au système de fichiers de l'hôte, c'est une coquille vide...</p>
+<p>Cette image est censée pouvoir s'executer sur toute distribution linux
+disposant de <code>systemd v239</code> <code>x86_64</code>, c'est pas mal niveau portabilité!</p>
+<p>Et biensûr, tout se passe dans <a href="https://github.com/gfriloux/retro-startpage/blob/main/flake.nix">flake.nix</a>!</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../systemd/systemctl.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../systemd/technical.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../systemd/technical.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../docker/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -242,11 +229,11 @@ de bosser en <code>isolation</code>, avec <code>reproductibilité</code>.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../systemd/systemctl.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../systemd/technical.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../systemd/technical.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../docker/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
