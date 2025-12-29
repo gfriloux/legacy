@@ -197,6 +197,10 @@ de se contenter de cette timeline grossière:</p>
 </div>
 <h2 id="solutions-à-des-problèmes"><a class="header" href="#solutions-à-des-problèmes">Solutions à des problèmes</a></h2>
 <h3 id="hardening"><a class="header" href="#hardening">Hardening</a></h3>
+<h4 id="docker"><a class="header" href="#docker">Docker</a></h4>
+<ul>
+<li><a href="docker/startpage.html#pourquoi-utiliser-nix">startpage - Pourquoi utiliser nix?</a></li>
+</ul>
 <h4 id="filesystem"><a class="header" href="#filesystem">Filesystem</a></h4>
 <p>Empêcher une application de saturer le disque système,
 par exemple via l'écriture de logs.</p>
@@ -1042,7 +1046,7 @@ au système de fichiers de l'hôte, c'est une coquille vide...</p>
 <p>Cette image est censée pouvoir s'executer sur toute distribution linux
 disposant de <code>systemd v239</code> <code>x86_64</code>, c'est pas mal niveau portabilité!</p>
 <p>Et biensûr, tout se passe dans <a href="https://github.com/gfriloux/retro-startpage/blob/main/flake.nix">flake.nix</a>!</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="docker"><a class="header" href="#docker">Docker</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="docker-1"><a class="header" href="#docker-1">Docker</a></h1>
 <p><a href="https://www.docker.com/">Docker</a> est une solution de gestion de <code>conteneurs</code>.<br />
 Il s'agit aujourd'hui de la solution dominante, car il est très
 facile d'accès, un peu comme l'est <a href="docker/../nix/devbox.html">devbox</a> pour
@@ -1222,6 +1226,59 @@ dr-xr-xr-x   1000:1000     264 kB              ├─⊕ js
 [2025-12-29T15:07:16Z INFO  actix_server::server] starting service: "actix-web-service-0.0.0.0:8080", workers: 2, listening on: 0.0.0.0:8080
 </code></pre>
 <p>Il est désormais possible d'accéder au service via <a href="http://localhost:80">http://localhost:80</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="vaultwarden"><a class="header" href="#vaultwarden">vaultwarden</a></h1>
+<p><a href="https://github.com/dani-garcia/vaultwarden">Vaultwarden</a> est une
+implémentation libre du serveur de <a href="https://bitwarden.com">Bitwarden</a>.</p>
+<p>Nous allons discuter de comment nous implémentons ce service
+dans un écosystème disposant de <a href="docker/traefik.html">traefik</a> et
+<a href="docker/watchertower.html">watchtower</a>.</p>
+<p>Pas de <code>nixfection</code> (pour le moment!).</p>
+<h2 id="séparation-des-déclarations"><a class="header" href="#séparation-des-déclarations">Séparation des déclarations</a></h2>
+<p>Bien que cela semble ridicule pour cet exemple du fait que
+la stack soit très légère, cela nous permet justement de mieux
+appréhender le concept.</p>
+<p>Sur une infra plus complexe, nous y trouverions aussi <code>MariaDB</code>, <code>Redis</code>...</p>
+<h3 id="docker-composeyml"><a class="header" href="#docker-composeyml">docker-compose.yml</a></h3>
+<p>Dans <code>docker-compose.yml</code> nous n'allons déclarer que les éléments essentiels
+à la gestion de la stack.</p>
+<p>Ce fichier pourrait tout simplement être donné à un client,
+un collègue...</p>
+<p>Il ne contient rien de spécifique.</p>
+<pre><code class="language-yml">services:
+  bitwarden:
+    image: vaultwarden/server:latest
+    restart: always
+    environment:
+      - EXPERIMENTAL_CLIENT_FEATURE_FLAGS=ssh-key-vault-item,ssh-agent
+    volumes:
+      - ./data:/data
+</code></pre>
+<h3 id="docker-composeoverrideyml"><a class="header" href="#docker-composeoverrideyml">docker-compose.override.yml</a></h3>
+<p>Dans <code>docker-compose.override.yml</code> nous allons écrire les spécifités
+de notre stack, notamment:</p>
+<ul>
+<li>Notre conteneur doit être sur le réseau <code>web</code> (dans lequel nous avons
+notre <a href="docker/traefik.html">traefik</a>).</li>
+<li>Notre conteneur est mis à jour par <a href="docker/watchtower.html">watchtower</a> avec
+les règles par défaut.</li>
+<li>Notre conteneur dispose de labels pour <a href="docker/traefik.html">traefik</a> afin
+de déclarer le <code>vhost</code> et gérer automatiquement le certificat
+<code>Let's Encrypt</code>.</li>
+</ul>
+<pre><code class="language-yml">services:
+  bitwarden:
+    labels:
+      - traefik.http.routers.vaultwarden.rule=Host(`vaultwarden.victim.org`)
+      - traefik.http.routers.vaultwarden.tls=true
+      - traefik.http.routers.vaultwarden.tls.certresolver=lets-encrypt
+      - com.centurylinklabs.watchtower.enable=true
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
+</code></pre>
 
                     </main>
 
