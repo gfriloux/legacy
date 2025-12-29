@@ -182,11 +182,12 @@ notion de <a href="https://systemd.io/PORTABLE_SERVICES/">Portable Services</a>.
 <h2 id="en-quoi-cela-va-nous-interesser"><a class="header" href="#en-quoi-cela-va-nous-interesser">En quoi cela va nous interesser?</a></h2>
 <h3 id="isolation"><a class="header" href="#isolation">Isolation</a></h3>
 <ul>
+<li>Si le service est compromis, les accès au système sont restreints.<br />
+En effet, le service est chrooté dans son image.</li>
 <li>Il est possible de donner accès à une partie du système de fichiers
 du host via <code>BindPaths=</code> et <code>BindReadOnlyPaths=</code>, pour y stocker
 des datas dites "dynamiques", ressemblant aux volumes sur <code>Docker</code>.<br />
 Pour le reste, le service est <code>chroot</code>.</li>
-<li>Si le service est compromis, les accès au système sont restreints.</li>
 <li>Pour les mises à jour, on <code>detach</code> l'image <code>.raw</code> de la version précédente
 du service, et on <code>attach</code> la nouvelle version!<br />
 C'est tout!<br />
