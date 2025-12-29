@@ -1242,7 +1242,12 @@ appréhender le concept.</p>
 <p>Dans <code>docker-compose.yml</code> nous n'allons déclarer que les éléments essentiels
 à la gestion de la stack.</p>
 <p>Ce fichier pourrait tout simplement être donné à un client,
-un collègue...</p>
+un collègue...<br />
+A l'inverse, il peut vous être fourni par les développeurs de l'application,
+et vous le gardez inchangé pour mieux voir les diffs dans le temps
+(pour certains projets, votre stack est un <code>git clone</code> d'un dépôt,
+et donc vous ne souhaitez pas créér de diff sur ce fichier indexé
+par <code>git</code>).</p>
 <p>Il ne contient rien de spécifique.</p>
 <pre><code class="language-yml">services:
   bitwarden:
@@ -1279,6 +1284,8 @@ networks:
   web:
     external: true
 </code></pre>
+<p>Rien à faire pour que <code>Docker</code> prenne en compte ce fichier, vous
+pouvez directement utiliser <code>docker compose up -d</code>.</p>
 
                     </main>
 
