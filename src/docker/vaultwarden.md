@@ -24,7 +24,12 @@ Dans `docker-compose.yml` nous n'allons déclarer que les éléments essentiels
 à la gestion de la stack.
 
 Ce fichier pourrait tout simplement être donné à un client,
-un collègue...
+un collègue...  
+A l'inverse, il peut vous être fourni par les développeurs de l'application,
+et vous le gardez inchangé pour mieux voir les diffs dans le temps
+(pour certains projets, votre stack est un `git clone` d'un dépôt,
+et donc vous ne souhaitez pas créér de diff sur ce fichier indexé
+par `git`).
 
 Il ne contient rien de spécifique.
 
@@ -67,3 +72,6 @@ networks:
   web:
     external: true
 ```
+
+Rien à faire pour que `Docker` prenne en compte ce fichier, vous
+pouvez directement utiliser `docker compose up -d`.
