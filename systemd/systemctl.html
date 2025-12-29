@@ -367,8 +367,50 @@ InaccessiblePaths=-/var/local
 InaccessiblePaths=-/var/cache
 InaccessiblePaths=-/var/opt
 </code></pre>
+<h3 id="apache2"><a class="header" href="#apache2">Apache2</a></h3>
+<p>Cette configuration permet d'obtenir un score de 4.9 sur <code>systemd-analyze security</code>.</p>
+<p><code>apache2.conf</code>:</p>
+<pre><code class="language-ini">[Service]
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateDevices=true
+DevicePolicy=closed
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=true
+LockPersonality=true
+ProtectClock=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ReadOnlyPaths=/
+NoExecPaths=/
+ExecPaths=-/usr/sbin
+ExecPaths=-/bin
+ExecPaths=-/usr/bin
+ExecPaths=-/usr/local/bin
+ExecPaths=-/usr/lib
+ExecPaths=-/lib
+ExecPaths=-/usr/lib/apache2/modules/
+ReadWritePaths=-/var/log/apache2
+ReadWritePaths=-/var/cache/apache2
+ReadWritePaths=-/var/lib/apache2
+ReadWritePaths=-/var/lock
+ReadWritePaths=-/run/apache2
+RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET AF_INET6
+UMask=007
+LimitNOFILE=65535
+SystemCallArchitectures=native
+CapabilityBoundingSet=~CAP_SYS_PTRACE
+</code></pre>
 <h2 id="sources"><a class="header" href="#sources">Sources</a></h2>
 <ul>
+<li><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html">systemd.exec</a></li>
 <li><a href="https://blog.stephane-robert.info/docs/admin-serveurs/linux/services/">Maitriser la gestion des services Linux avec systemd</a></li>
 <li><a href="https://github.com/alegrey91/systemd-service-hardening">alegrey91/systemd-service-hardening</a></li>
 <li><a href="https://nixos.wiki/wiki/Systemd_Hardening">Systemd Hardneing - NixOS Wiki</a></li>
@@ -378,7 +420,7 @@ InaccessiblePaths=-/var/opt
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../systemd/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../systemd/histoire.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -392,7 +434,7 @@ InaccessiblePaths=-/var/opt
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../systemd/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../systemd/histoire.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

@@ -643,6 +643,23 @@ socle pour un système <code>GNU/Linux</code>.<br />
 Il est aujourd'hui utilisé sur la plupart des distributions <code>GNU/Linux</code>.</p>
 <p>Il est donc important de s'interesser a ses composants, dont l'un
 des plus utilisé est <code>systemctl</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="histoire-2"><a class="header" href="#histoire-2">Histoire</a></h1>
+<p><code>Systemd</code> est un projet débuté en 2010.<br />
+Il se pose alors en alternative à <a href="https://fr.wikipedia.org/wiki/UNIX_System_V">System V</a>, dont
+il tente de résoudre les problèmes connus.</p>
+<p>1 an après la première release, nous avons déjà un ensemble
+de distributions qui basculent dessus, comme <code>Fedora</code> ou <code>Archlinux</code>.</p>
+<p>Bien que <code>Systemd</code> soit fortement critiqué par un ensemble de personnes,
+notamment sur son coté non <a href="https://fr.wikipedia.org/wiki/Principe_KISS">KISS</a>,
+il faut reconnaitre qu'il a très rapidement été adopté sur la plupart des
+distributions <code>GNU/Linux</code>.</p>
+<h2 id="sources-7"><a class="header" href="#sources-7">Sources</a></h2>
+<ul>
+<li><a href="https://fr.wikipedia.org/wiki/Systemd">systemd - Wikipédia</a></li>
+<li><a href="https://0pointer.de/blog/projects/the-biggest-myths.html">The Biggest Myths</a> (2013)</li>
+<li><a href="https://linuxfr.org/news/systemd-l-init-martyrise-l-init-bafoue-mais-l-init-libere">systemd : l’init martyrisé, l’init bafoué, mais l’init libéré !</a> (2015)</li>
+<li><a href="https://www.zdnet.fr/actualites/systemd-sur-debian-la-guerre-de-clochers-tourne-aux-menaces-39808179.htm">Systemd sur Debian : la guerre de clochers tourne aux menaces</a> (2014)</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="systemctl"><a class="header" href="#systemctl">systemctl</a></h1>
 <p><a href="https://man7.org/linux/man-pages/man1/systemctl.1.html">systemctl</a> est le programme principal
 de gestion de <a href="systemd/index.html">systemd</a>.</p>
@@ -834,8 +851,50 @@ InaccessiblePaths=-/var/local
 InaccessiblePaths=-/var/cache
 InaccessiblePaths=-/var/opt
 </code></pre>
-<h2 id="sources-7"><a class="header" href="#sources-7">Sources</a></h2>
+<h3 id="apache2"><a class="header" href="#apache2">Apache2</a></h3>
+<p>Cette configuration permet d'obtenir un score de 4.9 sur <code>systemd-analyze security</code>.</p>
+<p><code>apache2.conf</code>:</p>
+<pre><code class="language-ini">[Service]
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateDevices=true
+DevicePolicy=closed
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=true
+LockPersonality=true
+ProtectClock=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ReadOnlyPaths=/
+NoExecPaths=/
+ExecPaths=-/usr/sbin
+ExecPaths=-/bin
+ExecPaths=-/usr/bin
+ExecPaths=-/usr/local/bin
+ExecPaths=-/usr/lib
+ExecPaths=-/lib
+ExecPaths=-/usr/lib/apache2/modules/
+ReadWritePaths=-/var/log/apache2
+ReadWritePaths=-/var/cache/apache2
+ReadWritePaths=-/var/lib/apache2
+ReadWritePaths=-/var/lock
+ReadWritePaths=-/run/apache2
+RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET AF_INET6
+UMask=007
+LimitNOFILE=65535
+SystemCallArchitectures=native
+CapabilityBoundingSet=~CAP_SYS_PTRACE
+</code></pre>
+<h2 id="sources-8"><a class="header" href="#sources-8">Sources</a></h2>
 <ul>
+<li><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html">systemd.exec</a></li>
 <li><a href="https://blog.stephane-robert.info/docs/admin-serveurs/linux/services/">Maitriser la gestion des services Linux avec systemd</a></li>
 <li><a href="https://github.com/alegrey91/systemd-service-hardening">alegrey91/systemd-service-hardening</a></li>
 <li><a href="https://nixos.wiki/wiki/Systemd_Hardening">Systemd Hardneing - NixOS Wiki</a></li>
@@ -882,7 +941,7 @@ via <a href="https://ryantm.github.io/nixpkgs/builders/images/portableservice/#s
 <p>Lorsque l'on commence à vouloir faire discuter plusieurs services,
 <code>docker compose</code> (ou similaire) va s'imposer naturellement pour continuer
 de bosser en <code>isolation</code>, avec <code>reproductibilité</code>.</p>
-<h2 id="sources-8"><a class="header" href="#sources-8">Sources</a></h2>
+<h2 id="sources-9"><a class="header" href="#sources-9">Sources</a></h2>
 <ul>
 <li><a href="https://systemd.io/PORTABLE_SERVICES/">Systemd - Portable services</a></li>
 <li><a href="https://0pointer.net/blog/walkthrough-for-portable-services.html">Walkthrough for Portable Services</a></li>
@@ -982,7 +1041,7 @@ au système de fichiers de l'hôte, c'est une coquille vide...</p>
 disposant de <code>systemd v239</code> <code>x86_64</code>, c'est pas mal niveau portabilité!</p>
 <p>Et biensûr, tout se passe dans <a href="https://github.com/gfriloux/retro-startpage/blob/main/flake.nix">flake.nix</a>!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="docker"><a class="header" href="#docker">Docker</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="histoire-2"><a class="header" href="#histoire-2">Histoire</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="histoire-3"><a class="header" href="#histoire-3">Histoire</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="traefik"><a class="header" href="#traefik">traefik</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="watchtower"><a class="header" href="#watchtower">watchtower</a></h1>
 
