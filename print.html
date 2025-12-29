@@ -1043,8 +1043,85 @@ au système de fichiers de l'hôte, c'est une coquille vide...</p>
 disposant de <code>systemd v239</code> <code>x86_64</code>, c'est pas mal niveau portabilité!</p>
 <p>Et biensûr, tout se passe dans <a href="https://github.com/gfriloux/retro-startpage/blob/main/flake.nix">flake.nix</a>!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="docker"><a class="header" href="#docker">Docker</a></h1>
+<p><a href="https://www.docker.com/">Docker</a> est une solution de gestion de <code>conteneurs</code>.<br />
+Il s'agit aujourd'hui de la solution dominante, car il est très
+facile d'accès, un peu comme l'est <a href="docker/../nix/devbox.html">devbox</a> pour
+créér des environnements de travail.</p>
+<p><code>Docker</code> + <code>Docker Hub</code> permet de démarrer un service en mode
+<code>conteneur</code> (donc avec de l'isolation réseau/process...) sans rien
+connaitre des technologies sous-jacentes.</p>
+<p>C'est ce qui a créé sa popularité, mais aussi les réactions d'une partie
+du monde <code>IT</code> (reprochant l'usage "savant fou" rendu possible).</p>
+<p>Il a aussi fait l'objet de critiques venant de "puristes" de types
+d'installations plus traditionnelles, préférant utiliser les packages
+système de leur distribution.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="histoire-3"><a class="header" href="#histoire-3">Histoire</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="traefik"><a class="header" href="#traefik">traefik</a></h1>
+<p><a href="https://traefik.io/traefik">Traefik</a> est un proxy qui s'intègre très
+bien à des stacks <code>docker</code> car il peut se configurer au travers
+des <a href="https://docs.docker.com/engine/manage-resources/labels/">Docker labels</a>.</p>
+<p>En effet, il est possible de déclarer un <code>vhost</code> au travers des
+<a href="https://docs.docker.com/engine/manage-resources/labels/">Docker labels</a>
+afin d'obtenir sa création et destruction selon si le conteneur associé
+est démarré ou non.</p>
+<p>Son autre usage le plus populaire est de l'utiliser pour générer des
+certificats <a href="https://letsencrypt.org/fr/">Let's Encrypt</a> de manière automatisée
+(et donc, toujours sur création du conteneur associé au vhost).</p>
+<h2 id="routers"><a class="header" href="#routers">Routers</a></h2>
+<p>Les <a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/routing/router/">routers</a>
+nous permettent de décrire le traitement des requêtes, et donc, de définir
+les <code>vhosts</code>.</p>
+<p>Rien de très complexe, un <a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/routing/router/">routers</a>
+<code>nextcloud</code> se déclarera ainsi:</p>
+<pre><code class="language-toml">- traefik.http.routers.nextcloud.rule=Host(`nextcloud.victim.org`)
+</code></pre>
+<h2 id="middlewares"><a class="header" href="#middlewares">Middlewares</a></h2>
+<p>Les <a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/overview/">middlewares</a>
+permettent de manipuler les requêtes et les réponses traitées.</p>
+<h3 id="filtrage-ip"><a class="header" href="#filtrage-ip">Filtrage IP</a></h3>
+<p>Nous pouvons déclarer le <a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/overview/">middlewares</a>
+<code>interne</code> suivant:</p>
+<pre><code class="language-toml">labels:
+  - "traefik.http.middlewares.interne.ipwhitelist.sourcerange=192.168.0.0/16"
+</code></pre>
+<p>Cela aura pour effet de filtrer les requêtes pour n'accepter que celles venant
+du <code>CIDR</code> <code>192.168.0.0/16</code>.</p>
+<p>Pour l'utiliser, il faut attacher ce <code>middleware</code> à notre <code>router</code> dédié
+à notre conteneur <code>docker</code> (qui s'appelle <code>nextcloud</code> dans cet exemple):</p>
+<pre><code class="language-toml">labels:
+  - "traefik.http.routers.nextcloud.middlewares=interne"
+</code></pre>
+<p>Attention, ce filtrage cassera de fait la création de certificats
+<a href="https://letsencrypt.org/fr/">Let's Encrypt</a>.<br />
+Il conviendra donc de garder <code>/.well-known/</code> accessible publiquement,
+par exemple en créant 2 <a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/routing/router/">router</a>
+<code>nextcloud</code> et <code>nextcloud-le</code>:</p>
+<pre><code class="language-toml">labels:
+  - traefik.http.routers.nextcloud.rule=Host(`nextcloud.victim.org`)
+  - traefik.http.routers.nextcloud.tls=true
+  - traefik.http.routers.nextcloud.tls.certresolver=lets-encrypt
+  - traefik.http.routers.nextcloud.middlewares=galilee-interne
+  - traefik.http.routers.nextcloud-le.rule=(Host(`nextcloud.victim.org`) &amp;&amp; PathPrefix(`/.well-known/`))
+  - traefik.http.routers.nextcloud-le.tls=true
+  - traefik.http.routers.nextcloud-le.tls.certresolver=lets-encrypt
+</code></pre>
+<p>Ainsi, toute requête vers <code>nextcloud.victim.org/.well-known/</code> sera traitée par
+le <a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/routing/router/">router</a>
+<code>interne-le</code>, sans restriction IP, alors que le reste y sera soumis.</p>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best practices</a></h2>
+<h3 id="isoler-le-conteneur"><a class="header" href="#isoler-le-conteneur">Isoler le conteneur</a></h3>
+<p>Le mieux est de pouvoir créér un ou plusieurs <a href="https://docs.docker.com/engine/network/">Docker network</a>
+dont fera parti <a href="https://traefik.io/traefik">Traefik</a>.</p>
+<p>Pour chaque conteneur qui aura effectivement besoin d'être proxifié par
+<a href="https://traefik.io/traefik">Traefik</a>, il conviendra de l'associer à ce(s) network(s).</p>
+<p>Le but étant, sur une stack <code>docker compose</code>, de n'avoir que ce conteneur
+qui fasse parti du même <a href="https://docs.docker.com/engine/network/">Docker network</a>
+que <a href="https://traefik.io/traefik">Traefik</a>, les autres n'étant donc pas directement
+accessibles par <a href="https://traefik.io/traefik">Traefik</a>.</p>
+<h2 id="sources-10"><a class="header" href="#sources-10">Sources</a></h2>
+<ul>
+<li><a href="https://blog.stephane-robert.info/docs/services/reseau/traefik/">Exposer des Services Web avec Traefik</a></li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="watchtower"><a class="header" href="#watchtower">watchtower</a></h1>
 
                     </main>
