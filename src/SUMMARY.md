@@ -14,6 +14,7 @@
   - [direnv](nix/direnv.md)
   - [home-manager](nix/home-manager.md)
 - [Systemd](systemd/index.md)
+  - [Histoire](systemd/histoire.md)
   - [systemctl](systemd/systemctl.md)
   - [portable services](systemd/portables.services.md)
   - [Les cas pratiques](systemd/technical.md)
