@@ -177,6 +177,202 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="systemctl"><a class="header" href="#systemctl">systemctl</a></h1>
+<p><a href="https://man7.org/linux/man-pages/man1/systemctl.1.html">systemctl</a> est le programme principal
+de gestion de <a href="index.html">systemd</a>.</p>
+<p>Nous n'allons globalement nous interesser qu'à la partie <code>gestion de services</code>.<br />
+Il ne s'agit pas ici d'apprendre les bases, mais d'aller un peu plus loin.</p>
+<h2 id="hardening"><a class="header" href="#hardening">Hardening</a></h2>
+<h2 id="systemd-analyze-security"><a class="header" href="#systemd-analyze-security">systemd-analyze security</a></h2>
+<p>Cette commande permet d'obtenir un score pour chaque service.<br />
+L'idéal est de connaitre les besoins du service, et d'interdire tout
+accès qui ne correspond pas aux besoins.</p>
+<p>Il ne s'agit pas de restreindre le fonctionnement normal de l'application,
+mais bien d'encadrer son exploitation ou un bug.</p>
+<h2 id="configurations"><a class="header" href="#configurations">Configurations</a></h2>
+<p>L'intérêt est donc pour chaque service que l'on déploie, d'ajouter
+un <code>override</code> (par exemple via <code>systemctl edit</code>) qui va ajouter des restrictions.</p>
+<p>Exemples:</p>
+<ul>
+<li><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html?__goaway_challenge=meta-refresh&amp;__goaway_id=906c32ebcbcfadc50d8848f8da8a9896&amp;__goaway_referer=https%3A%2F%2Fwww.google.com%2F#PrivateTmp=">PrivateTmp=yes</a>: Créé un namespace pour que les accès du service dans <code>/tmp/</code> soient isolés dans un dossier temporaire.</li>
+<li><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html?__goaway_challenge=meta-refresh&amp;__goaway_id=906c32ebcbcfadc50d8848f8da8a9896&amp;__goaway_referer=https%3A%2F%2Fwww.google.com%2F#NoNewPrivileges=">NoNewPrivileges=true</a>: Permet d'empêcher le service d'obtenir de nouveaux privilèges.<br />
+Par exemple pour empêcher <code>php-fpm</code> ou un de ses fils de pouvoir passer <code>root</code>.</li>
+<li><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html?__goaway_challenge=meta-refresh&amp;__goaway_id=906c32ebcbcfadc50d8848f8da8a9896&amp;__goaway_referer=https%3A%2F%2Fwww.google.com%2F#ProtectSystem=">ProtectSystem=strict</a>: Permet de passer tout <code>/</code> en <code>read-only</code>.<br />
+Il convient ensuite d'utiliser <code>ReadWritePaths</code> pour autoriser les écritures dans certains dossiers.</li>
+<li><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html?__goaway_challenge=meta-refresh&amp;__goaway_id=906c32ebcbcfadc50d8848f8da8a9896&amp;__goaway_referer=https%3A%2F%2Fwww.google.com%2F#ReadWritePaths=">InaccessiblePaths</a>: Permet de rendre certains dossiers inaccessibles, y compris en lecture.</li>
+</ul>
+<h2 id="exemples-de-service"><a class="header" href="#exemples-de-service">Exemples de service</a></h2>
+<p>Ces fichiers de configuration ont étés testés sur <code>Debian</code>.<br />
+Ils ne sont pas parfaits, et doivent être adaptés à vos usages.</p>
+<h3 id="redis"><a class="header" href="#redis">Redis</a></h3>
+<p>Cette configuration permet d'obtenir un score de 2.5 sur <code>systemd-analyze security</code>.<br />
+Il force l'utilisation des <a href="https://man7.org/linux/man-pages/man7/unix.7.html">sockets unix</a> (dans <code>/var/run/redis/</code>) pour la connexion,
+au lieu de sockets tcp.</p>
+<p><code>redis.conf</code>:</p>
+<pre><code class="language-ini">[Service]
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateDevices=true
+DevicePolicy=closed
+ProtectSystem=strict
+ProtectHome=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=true
+LockPersonality=true
+ProtectClock=true
+ProtectHostname=true
+ProtectKernelLogs=true
+PrivateUsers=true
+RemoveIPC=true
+CapabilityBoundingSet=~CAP_LINUX_IMMUTABLE CAP_IPC_LOCK CAP_SYS_CHROOT CAP_BLOCK_SUSPEND CAP_LEASE
+ReadOnlyPaths=/
+NoExecPaths=/
+ExecPaths=-/usr/bin/redis-server
+ExecPaths=-/usr/lib
+ExecPaths=-/lib
+ReadWritePaths=-/var/run/redis
+ReadWritePaths=-/run/redis
+ReadWritePaths=-/var/log/redis
+ReadWritePaths=-/var/lib/redis
+RestrictAddressFamilies=AF_UNIX
+UMask=007
+LimitNOFILE=65535
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~ @privileged @resources
+</code></pre>
+<h3 id="mariadb"><a class="header" href="#mariadb">MariaDB</a></h3>
+<p>Cette configuration permet d'obtenir un score de 4.5 sur <code>systemd-analyze security</code>.</p>
+<p><code>mariadb.conf</code>:</p>
+<pre><code class="language-ini">[Service]
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateDevices=true
+DevicePolicy=closed
+ProtectSystem=strict
+ProtectHome=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=true
+LockPersonality=true
+ProtectClock=true
+ProtectHostname=true
+ProtectKernelLogs=true
+PrivateUsers=true
+RemoveIPC=true
+CapabilityBoundingSet=~CAP_LINUX_IMMUTABLE CAP_IPC_LOCK CAP_SYS_CHROOT CAP_BLOCK_SUSPEND CAP_LEASE
+ReadOnlyPaths=/
+NoExecPaths=/
+ExecPaths=-/usr/sbin/mariadbd
+ExecPaths=-/usr/lib
+ExecPaths=-/lib
+ReadWritePaths=-/var/run/mysqld
+ReadWritePaths=-/run/mysqld
+ReadWritePaths=-/var/lib/mysql/
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+UMask=007
+LimitNOFILE=65535
+SystemCallArchitectures=native
+
+</code></pre>
+<h3 id="php-fpm"><a class="header" href="#php-fpm">PHP-FPM</a></h3>
+<p>Cette configuration permet d'obtenir un score de 4.6 sur <code>systemd-analyze security</code>.</p>
+<p><code>php-fpm.conf</code>:</p>
+<pre><code class="language-ini">[Service]
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateDevices=true
+DevicePolicy=closed
+
+# This option will make any JIT techniques to fail.
+MemoryDenyWriteExecute=true
+
+LockPersonality=true
+UMask=007
+LimitNOFILE=65535
+
+RestrictNamespaces=~mnt
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET AF_INET6
+
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectClock=true
+ProtectHostname=true
+ProtectKernelLogs=true
+
+SystemCallArchitectures=native
+SystemCallErrorNumber=EPERM
+SystemCallFilter=~@mount
+SystemCallFilter=~@clock
+SystemCallFilter=~@cpu-emulation
+SystemCallFilter=~@module
+SystemCallFilter=~@obsolete
+SystemCallFilter=~@debug
+SystemCallFilter=~@reboot
+
+CapabilityBoundingSet=~CAP_SYS_PTRACE
+CapabilityBoundingSet=~CAP_SYS_ADMIN
+CapabilityBoundingSet=~CAP_MAC_*
+CapabilityBoundingSet=~CAP_LINUX_IMMUTABLE
+CapabilityBoundingSet=~CAP_SYS_BOOT
+CapabilityBoundingSet=~CAP_SYS_CHROOT
+CapabilityBoundingSet=~CAP_BLOCK_SUSPEND
+CapabilityBoundingSet=~CAP_NET_ADMIN
+
+ReadOnlyPaths=/
+
+ReadWritePaths=-/var/log/alternatives.log
+ReadWritePaths=-/var/lock
+ReadWritePaths=-/run/php
+ReadWritePaths=-/etc/alternatives
+ReadWritePaths=-/var/lib/dpkg/alternatives
+ReadWritePaths=-/var/log/php8.4-fpm.log
+ReadWritePaths=-/var/www/html
+
+NoExecPaths=/
+ExecPaths=-/usr/sbin
+ExecPaths=-/bin
+ExecPaths=-/usr/bin
+ExecPaths=-/usr/lib
+ExecPaths=-/lib
+
+InaccessiblePaths=-/boot
+InaccessiblePaths=-/lost+found
+InaccessiblePaths=-/etc/default
+InaccessiblePaths=-/etc/apache2
+InaccessiblePaths=-/etc/apt
+InaccessiblePaths=-/etc/shadow
+InaccessiblePaths=-/etc/sudoers
+InaccessiblePaths=-/etc/sysctl.conf
+InaccessiblePaths=-/etc/sysctl.d
+InaccessiblePaths=-/var/backups
+InaccessiblePaths=-/var/mail
+InaccessiblePaths=-/var/spool
+InaccessiblePaths=-/var/local
+InaccessiblePaths=-/var/cache
+InaccessiblePaths=-/var/opt
+</code></pre>
+<h2 id="sources"><a class="header" href="#sources">Sources</a></h2>
+<ul>
+<li><a href="https://blog.stephane-robert.info/docs/admin-serveurs/linux/services/">Maitriser la gestion des services Linux avec systemd</a></li>
+<li><a href="https://github.com/alegrey91/systemd-service-hardening">alegrey91/systemd-service-hardening</a></li>
+<li><a href="https://nixos.wiki/wiki/Systemd_Hardening">Systemd Hardneing - NixOS Wiki</a></li>
+</ul>
 
                     </main>
 
