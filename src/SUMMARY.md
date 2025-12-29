@@ -25,3 +25,4 @@
   - [watchtower](docker/watchtower.md)
   - [Les cas pratiques](docker/technical.md)
     - [startpage](docker/startpage.md)
+    - [vaultwarden](docker/vaultwarden.md)
