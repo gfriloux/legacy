@@ -213,7 +213,33 @@ par exemple via l'écriture de logs.</p>
 <li><a href="systemd/portables.services.html#isolation">Systemd - portable services</a></li>
 <li><a href="systemd/systemctl.html#hardening">Systemd - systemctl hardening</a></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="zfs"><a class="header" href="#zfs">ZFS</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="mon-environnement"><a class="header" href="#mon-environnement">Mon environnement</a></h1>
+<p>En tant que dinosaure, je suis encore principalement avec des outils
+qui s'executent dans un terminal.</p>
+<p>Cela correspond à ma philosophie :</p>
+<ul>
+<li>Si c'est simple, et fait le boulot, ça suffit.</li>
+<li>Les interfaces graphiques coopèrent mal ensemble.</li>
+<li>C'est moins gourmand en ressources.</li>
+<li>Je suis un gros nostalgique d'une époque maintenant phantasmée:
+les années 80/90.</li>
+</ul>
+<h2 id="ma-stack"><a class="header" href="#ma-stack">Ma stack</a></h2>
+<p>Globalement, mes outils necessaires sont dans mon dépôt
+<a href="https://github.com/gfriloux/nix-cli/tree/main">gfriloux/nix-cli</a>.</p>
+<p>Je vais lister ceux qui pour moi offrent une synergie interessante:</p>
+<div class="table-wrapper"><table><thead><tr><th>Outil</th><th>Description</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/fish-shell/fish-shell">fish</a></td><td>Shell en <code>rust</code>, qui à l'usage m'est beaucoup plus utile que <code>bash</code>.</td></tr>
+<tr><td><a href="https://github.com/JanDeDobbeleer/oh-my-posh">oh-my-posh</a></td><td>Prompt customisable, avec différents thêmes disponibles sur le site.</td></tr>
+<tr><td><a href="https://github.com/atuinsh/atuin">atuin</a></td><td>Historique shell tellement plus moderne que <code>history</code>.</td></tr>
+<tr><td><a href="https://github.com/sharkdp/bat">bat</a></td><td>Alternative à <code>cat</code>. J'ai un <code>alias</code> <code>bat</code> → <code>cat</code>.</td></tr>
+<tr><td><a href="https://github.com/aristocratos/btop">btop</a></td><td>Alternative à <code>top</code>/<code>htop</code>.</td></tr>
+<tr><td><a href="https://github.com/dandavison/delta">delta</a></td><td>Alternative à <code>diff</code>.</td></tr>
+<tr><td><a href="https://github.com/junegunn/fzf">fzf</a></td><td>Fuzzy Finder dont les usages sont tellements nombreux...</td></tr>
+<tr><td><a href="https://github.com/orf/git-workspace">git-workspace</a></td><td>Sync les dépôt <code>git</code> sur <code>gitlab</code>/<code>github</code>.</td></tr>
+<tr><td><a href="https://github.com/charmbracelet/glow">glow</a></td><td>Lecteur <code>Markdown</code>.</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="zfs"><a class="header" href="#zfs">ZFS</a></h1>
 <p><code>ZFS</code> est un système de fichier incroyable, qui résoud un ensemble de
 problèmes "du quotidien" de manière élégante et fiable.</p>
 <p>Ce système de fichier a tellement bousculé l'univers des systèmes de fichiers
