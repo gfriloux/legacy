@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>watchtower - My legacy</title>
+        <title>startpage - My legacy</title>
 
 
         <!-- Custom HTML head -->
@@ -176,31 +176,98 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="watchtower"><a class="header" href="#watchtower">watchtower</a></h1>
-<p><a href="https://github.com/containrrr/watchtower">Watchtower</a> est un outil de
-gestion de mises à jour des conteneurs <code>docker</code>.</p>
-<p>Je m'en sers depuis des années sans problèmes.</p>
-<p>Il m'est notamment utile car si l'on spécifie des notifications
-<code>mattermost</code>/<code>slack</code>, alors il va décrire ce qu'il fait.</p>
-<h2 id="projet-archivé"><a class="header" href="#projet-archivé">Projet archivé</a></h2>
-<p>Au moment de l'écriture de cette page, ils
-<a href="https://github.com/containrrr/watchtower/discussions/2135">viennent d'annoncer l'abandon du projet</a>.</p>
-<p>Plusieurs forks existent, dont
-<a href="https://github.com/nicholas-fedor/watchtower">nicholas-fedor/watchtower</a> qui est activement
-maintenu pour le moment, avec plus de 1000 commits ajoutés.</p>
-<p>Donc à voir!</p>
+                        <h1 id="startpage"><a class="header" href="#startpage">startpage</a></h1>
+<p><a href="https://github.com/gfriloux/retro-startpage">Startpage</a> est notre petit projet <code>demo</code> de création d'un site
+web de gestion de bookmarks (statique).</p>
+<p>Veuillez vous référer à <a href="../systemd/startpage.html">systemd/startpage</a> pour comprendre
+la stack.</p>
+<p>En effet, ici, nous ne parlerons que de la création de l'image docker!</p>
+<h2 id="construction-du-projet"><a class="header" href="#construction-du-projet">Construction du projet</a></h2>
+<h3 id="nix"><a class="header" href="#nix">Nix</a></h3>
+<p>Grâce à <code>nix</code>, nous allons pouvoir générer une image <a href="https://www.docker.com/">Docker</a>
+la plus légère possible, sans fioritures, <a href="https://docs.docker.com/dhi/core-concepts/distroless/">distroless</a>.</p>
+<p>Cela se fait en utilisant <a href="https://ryantm.github.io/nixpkgs/builders/images/dockertools/">pkgs.dockerTools</a>:</p>
+<pre><code class="language-nix">oci-docker = pkgs.dockerTools.buildLayeredImage {
+  name = "retro-startpage";
+  tag = "latest";
+  config = {
+    Cmd = ["${packages.littleweb}/bin/littleweb" "--host" "0.0.0.0" "--path" "${packages.website}/"];
+    User = "1000:1000";
+  };
+};
+</code></pre>
+<p>On lance le build:</p>
+<pre><code>nix build .#oci-docker
+</code></pre>
+<h3 id="pourquoi-utiliser-nix"><a class="header" href="#pourquoi-utiliser-nix">Pourquoi utiliser nix?</a></h3>
+<p>Tout simplement car en utilisant <code>nix</code> plutôt qu'écrire un <code>Dockerfile</code>,
+nous ajoutons ses concepts, notamment, dans ce contexte:</p>
+<ul>
+<li>Les phases de build se font sans accès réseaux, il y'a
+une phase de téléchargement des fichiers, une phase de construction.</li>
+<li>Nous avons enfin des builds reproductibles, contrairement
+à des <code>Dockerfile</code> qui cessent de build du jour au lendemain.</li>
+</ul>
+<p>Nous allons aussi éviter la facilité introduite par <a href="https://www.docker.com/">Docker</a>:</p>
+<p>Écrire des <code>Dockerfile</code> avec <code>FROM debian</code> car c'est pratique, au cas où on
+ait besoin d'un outil à un moment donné.<br />
+Ça ne semble pas problèmatique si l'on n'y pense pas vraiment,
+mais partir d'une distribution "de base", fait qu'on embarque un ensemble
+de librairies, un shell, un package manager... qui pourront un jour jouer
+contre notre service, en terme de sécurité (un shellcode de base execute
+<code>/bin/sh</code>).</p>
+<h2 id="résultat"><a class="header" href="#résultat">Résultat</a></h2>
+<p>Nous pouvons charger l'image avec la commande <code>docker load &lt; result</code>.</p>
+<h3 id="docker-images"><a class="header" href="#docker-images">docker images</a></h3>
+<pre><code> kuri@Nomad  retro-startpage  main  16:02  docker images
+IMAGE                    ID             DISK USAGE   CONTENT SIZE   EXTRA
+retro-startpage:latest   1df45e5206f5       13.2MB             0B
+</code></pre>
+<h3 id="dive"><a class="header" href="#dive">dive</a></h3>
+<p><a href="https://github.com/wagoodman/dive">dive</a> nous permet d'inspecter
+le contenu de notre image, afin de vérifier que nous avons bien
+quelque chose de léger, <a href="https://docs.docker.com/dhi/core-concepts/distroless/">distroless</a>:</p>
+<pre><code>┃ ● Current Layer Contents ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Permission     UID:GID       Size  Filetree                                                                                                                    
+drwxr-xr-x   1000:1000      13 MB  └── nix                                                                                                                     
+drwxr-xr-x   1000:1000      13 MB      └── store                                                                                                               
+dr-xr-xr-x   1000:1000     9.9 MB          ├── mk1nrzsfngfj5hipmgq1a51cysr89x43-littleweb-static-x86_64-unknown-linux-musl-1.4.0                               
+dr-xr-xr-x   1000:1000     9.9 MB          │   └── bin                                                                                                         
+-r-xr-xr-x   1000:1000     9.9 MB          │       └── littleweb                                                                                               
+dr-xr-xr-x   1000:1000     3.2 MB          └── nga39cm902ckqjwffp8r2f63kkb72jbc-retro-crt-startpage-x86_64-unknown-linux-musl                                  
+-r--r--r--   1000:1000      33 kB              ├── apple-touch-icon.png                                                                                        
+-r--r--r--   1000:1000     8.7 kB              ├── ascii-headers.html                                                                                          
+-r--r--r--   1000:1000      445 B              ├── browserconfig.xml                                                                                           
+-r--r--r--   1000:1000      611 B              ├── crossdomain.xml                                                                                             
+dr-xr-xr-x   1000:1000      23 kB              ├─⊕ css                                                                                                         
+-r--r--r--   1000:1000      33 kB              ├── favicon.png                                                                                                 
+dr-xr-xr-x   1000:1000     398 kB              ├─⊕ fonts                                                                                                       
+-r--r--r--   1000:1000      229 B              ├── humans.txt                                                                                                  
+dr-xr-xr-x   1000:1000     2.4 MB              ├─⊕ images                                                                                                      
+-r--r--r--   1000:1000     3.3 kB              ├── index.html                                                                                                  
+dr-xr-xr-x   1000:1000     264 kB              ├─⊕ js                                                                                                          
+-r--r--r--   1000:1000     2.0 kB              ├── links.json                                                                                                  
+-r--r--r--   1000:1000      23 kB              ├── power_off.mp3                                                                                               
+-r--r--r--   1000:1000      35 kB              ├── power_on.mp3                                                                                                
+-r--r--r--   1000:1000       61 B              └── robots.txt          
+</code></pre>
+<h3 id="docker-run"><a class="header" href="#docker-run">docker run</a></h3>
+<pre><code> kuri@Nomad  retro-startpage  main  16:07  docker run -p 80:8080 retro-startpage
+[2025-12-29T15:07:16Z INFO  littleweb] Serving /nix/store/nga39cm902ckqjwffp8r2f63kkb72jbc-retro-crt-startpage-x86_64-unknown-linux-musl/ on port 8080
+[2025-12-29T15:07:16Z INFO  actix_server::builder] starting 2 workers
+[2025-12-29T15:07:16Z INFO  actix_server::server] Actix runtime found; starting in Actix runtime
+[2025-12-29T15:07:16Z INFO  actix_server::server] starting service: "actix-web-service-0.0.0.0:8080", workers: 2, listening on: 0.0.0.0:8080
+</code></pre>
+<p>Il est désormais possible d'accéder au service via <a href="http://localhost:80">http://localhost:80</a></p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../docker/traefik.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../docker/technical.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../docker/technical.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -208,13 +275,10 @@ maintenu pour le moment, avec plus de 1000 commits ajoutés.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../docker/traefik.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../docker/technical.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../docker/technical.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>
