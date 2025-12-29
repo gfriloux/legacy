@@ -7,11 +7,12 @@ notion de [Portable Services](https://systemd.io/PORTABLE_SERVICES/).
 
 ### Isolation
 
+- Si le service est compromis, les accès au système sont restreints.  
+  En effet, le service est chrooté dans son image.
 - Il est possible de donner accès à une partie du système de fichiers
   du host via `BindPaths=` et `BindReadOnlyPaths=`, pour y stocker
   des datas dites "dynamiques", ressemblant aux volumes sur `Docker`.  
   Pour le reste, le service est `chroot`.
-- Si le service est compromis, les accès au système sont restreints.
 - Pour les mises à jour, on `detach` l'image `.raw` de la version précédente
   du service, et on `attach` la nouvelle version!  
   C'est tout!  

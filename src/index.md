@@ -10,7 +10,7 @@ ce n'est qu'à la découverte de `GNU/Linux` que mon aventure
 informatique démarre rééllement.
 
 Et même si j'ai testé beaucoup de distros, il est possible
-de ce contenter de cette timeline grossière:
+de se contenter de cette timeline grossière:
 
 | Année | Distro/OS |
 |-------|-----------|
@@ -37,5 +37,4 @@ par exemple via l'écriture de logs.
 Restreindre les droits d'un service
 
 - [Systemd - portable services](systemd/portables.services.html#isolation)
-
-
+- [Systemd - systemctl hardening](systemd/systemctl.html#hardening)
