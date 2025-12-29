@@ -65,8 +65,18 @@ Cette configuration permet d'obtenir un score de 4.6 sur `systemd-analyze securi
 {{#include services/php-fpm.conf}}
 ```
 
+### Apache2
+
+Cette configuration permet d'obtenir un score de 4.9 sur `systemd-analyze security`.  
+
+`apache2.conf`:
+```ini
+{{#include services/apache2.conf}}
+```
+
 ## Sources
 
+- [systemd.exec](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html)
 - [Maitriser la gestion des services Linux avec systemd](https://blog.stephane-robert.info/docs/admin-serveurs/linux/services/)
 - [alegrey91/systemd-service-hardening](https://github.com/alegrey91/systemd-service-hardening)
 - [Systemd Hardneing - NixOS Wiki](https://nixos.wiki/wiki/Systemd_Hardening)
