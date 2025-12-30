@@ -37,6 +37,7 @@ Je vais lister ceux qui pour moi offrent une synergie interessante:
 | [prettyping][prettyping]       | Alternative à `prettyping`. J'ai un `alias` `prettyping` → `ping`.   |
 | [pwgen][pwgen]                 | Générateur de mots de passe.                                         |
 | [rsync][rsync]                 | Pour les transferts de fichiers.                                     |
+| [tv][tv]                       | Alternative à `fzf`.                                                 |
 | [xcp][xcp]                     | Alternative à `cp`. J'ai un `alias` `xcp` → `cp`.                    |
 | [zellij][zellij]               | Alternative à `screen`.                                              |
 
@@ -57,5 +58,6 @@ Je vais lister ceux qui pour moi offrent une synergie interessante:
 [prettyping]: https://github.com/denilsonsa/prettyping
 [pwgen]: https://github.com/jbernard/pwgen
 [rsync]: https://github.com/RsyncProject/rsync
+[tv]: https://github.com/alexpasmantier/television
 [xcp]: https://github.com/xcp-ng/xcp
 [zellij]: https://github.com/zellij-org/zellij
