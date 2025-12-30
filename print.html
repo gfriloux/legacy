@@ -413,8 +413,41 @@ devient trivial!</p>
 <pre><code>zfs send zroot/srv/docker/victim.org@2023-08-08-00-00-06 | ssh $host "zfs recv zroot/srv/docker/victim.org"
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="outils"><a class="header" href="#outils">Outils</a></h1>
+<h2 id="httm"><a class="header" href="#httm">httm</a></h2>
+<p><a href="https://github.com/kimono-koans/httm">httm</a> permet de faciliter
+l'utilisation de <code>zfs</code> pour avoir une visualisation de ce qui s'est passé
+dans le temps, au niveau des datasets.</p>
+<p>Parmis les différentes possibilitées, les 2 cas d'usage les plus basiques
+sont ci dessous.</p>
+<h3 id="trouver-les-versions-dun-fichier"><a class="header" href="#trouver-les-versions-dun-fichier">Trouver les versions d'un fichier</a></h3>
+<p>Supposons notre stack <code>/srv/docker/victim.org</code> vue sur la page
+<a href="zfs/snapshots.html">Snapshots</a>, pour visualiser toutes les modifications
+de <code>docker-compose.yml</code> dans le temps, nous pouvons faire:</p>
+<pre><code> $  /s/d/cloud.friloux.me  httm docker-compose.yml
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Sun Nov 02 17:04:30 2025 UTC  2.9 KiB  "/srv/docker/victim.org/.zfs/snapshot/zrepl_20251225_060837_000/docker-compose.yml"
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Tue Dec 30 09:03:29 2025 UTC  2.9 KiB  "/srv/docker/victim.org/docker-compose.yml"
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+</code></pre>
+<p>Et observer que ce fichier a été modifié depuis le dernier snapshot!</p>
+<h3 id="trouver-les-fichiers-supprimés"><a class="header" href="#trouver-les-fichiers-supprimés">Trouver les fichiers supprimés</a></h3>
+<p>Exemple avec une stack <a href="https://github.com/netdata/netdata">netdata</a>:</p>
+<pre><code> $  /s/d/_base  httm -n --no-live -d -R . | head -n10
+⠠
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000049.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000050.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000051.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000052.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000053.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000054.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000055.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000056.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-10-00-00-05/netdata/cache/dbengine-tier2/datafile-1-0000000057.ndf
+/srv/docker/_base/.zfs/snapshot/2023-07-11-00-00-02/netdata/cache/dbengine-tier2/datafile-1-0000000057.ndf
+</code></pre>
 <h2 id="zfs-prune-snapshots"><a class="header" href="#zfs-prune-snapshots">zfs-prune-snapshots</a></h2>
-<p><a href="https://github.com/bahamas10/zfs-prune-snapshots">bahamas10/zfs-prune-snapshots</a>
+<p><a href="https://github.com/bahamas10/zfs-prune-snapshots">zfs-prune-snapshots</a>
 permet de gérer le nombre de snapshots à conserver.</p>
 <h2 id="zrepl"><a class="header" href="#zrepl">zrepl</a></h2>
 <p><a href="https://github.com/zrepl/zrepl">zrepl</a> permet de répliquer des datasets
