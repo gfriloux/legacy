@@ -30,6 +30,16 @@ va créér des **services systemd en espace utilisateur**, et permettre de
 `home-manager` est `Multi-OS`, je m'en suis d'abord servit sous [Archlinux](https://archlinux.fr/),
 vous pouvez vous en servir sous `macOS`... Il n'est pas necessaire d'être sous [NixOS](https://nixos.org/).
 
+## Intégration nix
+
+Lorsque vous serez plus à l'aise avec `nix`, que vous en serez à gérer
+des portions du système avec `nix`, ou bien tout simplement basculez
+sur `NixOS`, vous pourrez intégrer vos configs `home-manager` dans vos
+flakes.
+
+Ce n'est donc pas une perte de temps de démarrer `nix` avec uniquement
+`home-manager`.
+
 ## Sources
 
 - [Home Manager Manual](https://nix-community.github.io/home-manager/).
