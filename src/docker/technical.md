@@ -1,3 +1,7 @@
 # Les cas pratiques
 
-- [startpage](./startpage.md)
+- [startpage] - Créér une image docker `distroless` de [startpage]
+- [vaultwarden](vaultwarden.md) - Bien gérer notre fichier `docker-compose.yml`
+
+
+[startpage]: startpage.md
