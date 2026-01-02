@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Les cas pratiques - My legacy</title>
+        <title>sshtui - My legacy</title>
 
 
         <!-- Custom HTML head -->
@@ -176,21 +176,158 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="les-cas-pratiques"><a class="header" href="#les-cas-pratiques">Les cas pratiques</a></h1>
+                        <h1 id="sshtui"><a class="header" href="#sshtui">sshtui</a></h1>
+<p><img src="https://github.com/gfriloux/sshtui/raw/main/sshtui.gif" alt="sshtui" /></p>
+<p><a href="https://github.com/gfriloux/sshtui">sshtui</a> est un petit script qui permet de naviguer dans nos
+configs <code>openssh</code> afin de trouver le serveur sur lequel on souhaite
+se connecter.</p>
+<p>Ses caractéristiques:</p>
 <ul>
-<li><a href="startpage.html">startpage</a> - Créér une image docker <code>distroless</code> de <a href="startpage.html">startpage</a></li>
-<li><a href="vaultwarden.html">vaultwarden</a> - Bien gérer notre fichier <code>docker-compose.yml</code></li>
+<li>Il se base sur <a href="https://github.com/alexpasmantier/television">tv</a> pour le rendu graphique.</li>
+<li>Il créé un <a href="https://alexpasmantier.github.io/television/docs/Users/channels/">tv channel</a> pour permettre à <a href="https://github.com/alexpasmantier/television">tv</a> de savoir comment traiter
+nos configs <code>openssh</code>.</li>
+<li>Il dépend des outils suivants:
+<ul>
+<li><code>bash</code></li>
+<li><code>bat</code></li>
+<li><code>awk</code></li>
+<li><code>xargs</code></li>
 </ul>
+</li>
+</ul>
+<p>Ses flakes déclarent un module pour <code>home-manager</code>, permettant de facilement
+l'intégrer dans nos configurations <code>home-manager</code>.</p>
+<p>C'est en fait un excellent projet pour apprendre à faire cela, car il a la
+simplicité permettant de se focaliser sur comment intégrer dans <code>home-manager</code>
+un package que l'on créé nous-même.</p>
+<p>Afin encore d'éviter de se créér un ensemble de problèmes, nous allons utiliser
+<a href="https://snowfall.org/guides/lib/quickstart/">snowfall-lib</a> qui "standardise" la manière d'écrire nos flakes, afin
+qu'ils soient bien organisés (ce qui est très bien pour des débutants).</p>
+<h2 id="création-de-notre-module-nix"><a class="header" href="#création-de-notre-module-nix">Création de notre module nix</a></h2>
+<p>Dans cet exemple, nous crééons le dépôt <a href="https://github.com/gfriloux/sshtui">sshtui</a> sur <code>github</code>.</p>
+<h3 id="flakenix"><a class="header" href="#flakenix">flake.nix</a></h3>
+<p>dans notre <a href="https://github.com/gfriloux/sshtui/blob/c75e3449bd19c19b987154ae99a4e8d060547da4/flake.nix">flake.nix</a>, la partie importante est <a href="https://snowfall.org/guides/lib/quickstart/">celle-ci</a>:</p>
+<pre><code class="language-nix">inputs.snowfall-lib.mkFlake {
+  inherit inputs;
+  systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+  src = ./.;
+
+  snowfall = {
+    namespace = "sshtui";
+  };
+  alias = {
+    packages.default = "sshtui";
+  };
+};
+</code></pre>
+<p>C'est ce qui va permette à <a href="https://snowfall.org/guides/lib/quickstart/">snowfall-lib</a> de générer tout le code du <code>flake</code>
+avec les bons <code>output</code> pour réutiliser ce <code>module nix</code></p>
+<h3 id="package-sshtui"><a class="header" href="#package-sshtui">package sshtui</a></h3>
+<p>Nous pouvons dès maintenant déclarer notre package dans <code>packages/sshtui/default.nix</code>:</p>
+<pre><code class="language-nix">{ lib, pkgs, writeShellApplication, ... }:
+
+writeShellApplication {
+  name = "sshtui";
+  text = (builtins.readFile ../../sshtui);
+  runtimeInputs = with pkgs; [
+    bash
+    television
+    bat
+    gawk       # awk
+    findutils  # xargs
+  ];
+
+  meta  = with lib; {
+    description = "Simple SSH TUI";
+    licence = licences.gpl;
+    platforms = platforms.all;
+    mainProgram = "sshtui";
+  };
+}
+</code></pre>
+<p>C'est globalement aussi simple que ça!
+Nous demandons à <code>nix</code> de build un script <code>shell</code> dont l'emplacement est à
+la racine du projet : <a href="https://github.com/gfriloux/sshtui/blob/c75e3449bd19c19b987154ae99a4e8d060547da4/sshtui">../../sshtui</a></p>
+<p>Et nous déclarons dans <code>runtimeInputs</code> les packages dont il dépend!
+C'est tout!</p>
+<h3 id="module-home-manager"><a class="header" href="#module-home-manager">module home-manager</a></h3>
+<p>Afin de pouvoir utiliser ce <code>nix module</code> depuis <code>home-manager</code>,
+nous avons besoin de déclarer <code>programs.sshtui</code> dans
+<code>modules/home/sshtui/default.nix</code>:</p>
+<pre><code class="language-nix">{ config, lib, pkgs, ... }:
+let
+  cfg = config.programs.sshtui;
+in
+{
+  options.programs.sshtui = {
+    enable = lib.mkEnableOption "sshtui";
+
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.sshtui;
+      description = "sshtui package to use";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    xdg.configFile."television/cable/sshtui.toml".source = ../../../sshtui.toml;
+    home.packages = [
+      cfg.package
+    ];
+  };
+}
+</code></pre>
+<p>ainsi, si l'on déclare <code>programs.sshtui.enable=true;</code> dans notre config
+<code>home-manager</code>, nous aurons:</p>
+<ul>
+<li>L'installation du script <code>sshtui</code>.</li>
+<li>L'installation de <code>sshtui.toml</code> qui est notre <a href="https://alexpasmantier.github.io/television/docs/Users/channels/">tv channel</a> pour <a href="https://github.com/alexpasmantier/television">tv</a>.</li>
+</ul>
+<h3 id="overlay-sshtui"><a class="header" href="#overlay-sshtui">overlay sshtui</a></h3>
+<p>Maintenant, pour que ce module s'intègre bien, nous allons déclarer un
+<a href="https://snowfall.org/guides/lib/overlays/">snowfall-lib-overlay</a> afin de pouvoir utiliser <code>pkgs.sshtui</code>.<br />
+On créé donc <code>overlays/sshtui/default.nix</code>:</p>
+<pre><code class="language-nix">{ channels, inputs, ... }:
+
+final: prev: {
+  sshtui = inputs.self.packages.${final.system}.sshtui;
+}
+</code></pre>
+<h2 id="utilisation-du-module"><a class="header" href="#utilisation-du-module">Utilisation du module</a></h2>
+<p>Maintenant que tout est fait, pour l'utiliser il y'a 3 choses à faire
+dans le dossier contenant nos flakes et notre config
+<code>home-manager</code></p>
+<h3 id="ajout-du-input-dans-flakenix"><a class="header" href="#ajout-du-input-dans-flakenix">Ajout du input dans flake.nix</a></h3>
+<pre><code class="language-nix">sshtui = {
+  url = "github:gfriloux/sshtui";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
+</code></pre>
+<h3 id="déclaration-du-module-home-manager"><a class="header" href="#déclaration-du-module-home-manager">Déclaration du module home-manager</a></h3>
+<p>Toujours dans <code>flake.nix</code> (normalement), sous
+<code>home-manager.lib.homeManagerConfiguration</code>, nous
+ajoutons ce <code>module</code>:</p>
+<pre><code class="language-nix">modules = [
+  sshtui.homeModules.sshtui
+];
+</code></pre>
+<h3 id="installation-du-program"><a class="header" href="#installation-du-program">Installation du program</a></h3>
+<p>Dans <code>home.nix</code> (normalement), nous
+ajoutons:</p>
+<pre><code class="language-nix">programs.sshtui.enable = true;
+</code></pre>
+<p>Et c'est tout!
+Normalement vous devriez avoir la commande <code>sshtui</code> disponible!</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../docker/watchtower.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../nix/technical.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../docker/startpage.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../systemd/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -200,11 +337,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../docker/watchtower.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../nix/technical.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../docker/startpage.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../systemd/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
