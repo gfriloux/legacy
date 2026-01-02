@@ -16,6 +16,8 @@
   - [flakes](nix/flakes.md)
   - [direnv](nix/direnv.md)
   - [home-manager](nix/home-manager.md)
+  - [Les cas pratiques](./nix/technical.md)
+    - [sshtui](nix/sshtui.md)
 - [Systemd](systemd/index.md)
   - [Histoire](systemd/histoire.md)
   - [systemctl](systemd/systemctl.md)
