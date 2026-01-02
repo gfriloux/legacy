@@ -18,29 +18,30 @@ Globalement, mes outils necessaires sont dans mon dépôt
 
 Je vais lister ceux qui pour moi offrent une synergie interessante:
 
-| Outil                          | Description |
-|--------------------------------|-------------|
-| [fish][fish]                   | Shell en `rust`, qui à l'usage m'est beaucoup plus utile que `bash`. |
-| [atuin][atuin]                 | Historique shell tellement plus moderne que `history`.               |
-| [bat][bat]                     | Alternative à `cat`. J'ai un `alias` `bat` → `cat`.                  |
-| [btop][btop]                   | Alternative à `top`/`htop`.                                          |
-| [delta][delta]                 | Alternative à `diff`.                                                |
-| [fzf][fzf]                     | Fuzzy Finder dont les usages sont tellements nombreux...             |
-| [git-workspace][git-workspace] | Sync les dépôt `git` sur `gitlab`/`github`.                          |
-| [glow][glow]                   | Lecteur `Markdown`.                                                  |
-| [gum][gum]                     | Permet de créér des interfaces dans le terminal.                     |
-| [just][just]                   | Alternative à `make`.                                                |
-| [lsd][lsd]                     | Alternative à `lsd`. J'ai un `alias` `lsd` → `ls`.                   |
-| [micro][micro]                 | Éditeur texte léger, en alternative à `nano`.                        |
-| [ncdu][ncdu]                   | Alternative à `du`.                                                  |
-| [oh-my-posh][oh-my-posh]       | Prompt customisable, avec différents thêmes disponibles sur le site. |
-| [prettyping][prettyping]       | Alternative à `prettyping`. J'ai un `alias` `prettyping` → `ping`.   |
-| [pwgen][pwgen]                 | Générateur de mots de passe.                                         |
-| [rsync][rsync]                 | Pour les transferts de fichiers.                                     |
-| [sshtui][sshtui]               | Interface pour les configs `ssh` en utilisant [tv][tv].              |
-| [tv][tv]                       | Alternative à `fzf`.                                                 |
-| [xcp][xcp]                     | Alternative à `cp`. J'ai un `alias` `xcp` → `cp`.                    |
-| [zellij][zellij]               | Alternative à `screen`.                                              |
+| Outil             | Description                                                          |
+|-------------------|----------------------------------------------------------------------|
+| [fish]            | Shell en `rust`, qui à l'usage m'est beaucoup plus utile que `bash`. |
+| [atuin]           | Historique shell tellement plus moderne que `history`.               |
+| [bat]             | Alternative à `cat`. J'ai un `alias` `bat` → `cat`.                  |
+| [btop]            | Alternative à `top`/`htop`.                                          |
+| [delta]           | Alternative à `diff`.                                                |
+| [fzf]             | Fuzzy Finder dont les usages sont tellements nombreux...             |
+| [gitflow-toolkit] | Outil d'aide au formattage des messages de commit.                   |
+| [git-workspace]   | Sync les dépôt `git` sur `gitlab`/`github`.                          |
+| [glow]            | Lecteur `Markdown`.                                                  |
+| [gum]             | Permet de créér des interfaces dans le terminal.                     |
+| [just]            | Alternative à `make`.                                                |
+| [lsd]             | Alternative à `lsd`. J'ai un `alias` `lsd` → `ls`.                   |
+| [micro]           | Éditeur texte léger, en alternative à `nano`.                        |
+| [ncdu]            | Alternative à `du`.                                                  |
+| [oh-my-posh]      | Prompt customisable, avec différents thêmes disponibles sur le site. |
+| [prettyping]      | Alternative à `prettyping`. J'ai un `alias` `prettyping` → `ping`.   |
+| [pwgen]           | Générateur de mots de passe.                                         |
+| [rsync]           | Pour les transferts de fichiers.                                     |
+| [sshtui]          | Interface pour les configs `ssh` en utilisant [tv][tv].              |
+| [tv]              | Alternative à `fzf`.                                                 |
+| [xcp]             | Alternative à `cp`. J'ai un `alias` `xcp` → `cp`.                    |
+| [zellij]          | Alternative à `screen`.                                              |
 
 [fish]: https://github.com/fish-shell/fish-shell
 [oh-my-posh]: https://github.com/JanDeDobbeleer/oh-my-posh
@@ -49,6 +50,7 @@ Je vais lister ceux qui pour moi offrent une synergie interessante:
 [btop]: https://github.com/aristocratos/btop
 [delta]: https://github.com/dandavison/delta
 [fzf]: https://github.com/junegunn/fzf
+[gitflow-toolkit]: https://github.com/gfriloux/gitflow-toolkit
 [git-workspace]: https://github.com/orf/git-workspace
 [glow]: https://github.com/charmbracelet/glow
 [gum]: https://github.com/charmbracelet/gum
