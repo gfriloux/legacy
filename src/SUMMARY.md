@@ -18,6 +18,7 @@
   - [home-manager](nix/home-manager.md)
   - [Les cas pratiques](./nix/technical.md)
     - [sshtui](nix/sshtui.md)
+    - [m365-refresh](nix/m365-refresh.md)
 - [Systemd](systemd/index.md)
   - [Histoire](systemd/histoire.md)
   - [systemctl](systemd/systemctl.md)
