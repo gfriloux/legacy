@@ -723,7 +723,8 @@ started with home manager with flakes and all that 2024 goodness.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="les-cas-pratiques-1"><a class="header" href="#les-cas-pratiques-1">Les cas pratiques</a></h1>
 <ul>
-<li><a href="nix/sshtui.html">sshtui</a></li>
+<li><a href="nix/sshtui.html">sshtui</a> - Packager un script bash.</li>
+<li><a href="nix/m365-refresh.html">m365-refresh</a> - Packager un service systemd en python (oneshot).</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sshtui"><a class="header" href="#sshtui">sshtui</a></h1>
 <p><img src="https://github.com/gfriloux/sshtui/raw/main/sshtui.gif" alt="sshtui" /></p>
@@ -867,6 +868,175 @@ ajoutons:</p>
 </code></pre>
 <p>Et c'est tout!
 Normalement vous devriez avoir la commande <code>sshtui</code> disponible!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="m365-refresh"><a class="header" href="#m365-refresh">m365-refresh</a></h1>
+<p><a href="https://github.com/gfriloux/nix-m365">m365-refresh</a> est un script python qui permet de refresh
+les {access,refresh} tokens pour l'auth <code>OAUTH2</code>, si vous avez
+un compte mail chez microsoft.</p>
+<p>C'est une reprise de <a href="https://github.com/UvA-FNWI/M365-IMAP">UvA-FNWI/M365-IMAP</a>, pour le faire
+fonctionner en mode service.</p>
+<p>Ce mini projet nous permet de facilement valider quelques technos:</p>
+<ul>
+<li>Packager un script python ultra basique.</li>
+<li>Créér un service systemd dans votre espace utilisateur.</li>
+<li>Créér un timer systemd dans votre espace utilisateur.</li>
+</ul>
+<h2 id="création-de-notre-module-nix-1"><a class="header" href="#création-de-notre-module-nix-1">Création de notre module nix</a></h2>
+<h3 id="flakenix-1"><a class="header" href="#flakenix-1">flake.nix</a></h3>
+<p>Notre <a href="https://github.com/gfriloux/nix-m365/blob/c4f523c05fb1e0ec99a0d1efc41b153fd23eca71/flake.nix">flake.nix</a> ne change pas vraiment par rapport à
+<a href="nix/sshtui.nix">sshtui</a>:</p>
+<pre><code class="language-nix">inputs.snowfall-lib.mkFlake {
+  inherit inputs;
+  systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+  src = ./.;
+
+  snowfall = {
+    namespace = "m365";
+  };
+  alias = {
+    packages.default = "m365";
+  };
+};
+</code></pre>
+<p>Le package s'appelle <code>m365</code> car à la base je pensai embarquer plusieurs
+scripts, dont seul <code>m365-refresh.py</code> serait un service.</p>
+<h3 id="packagesm365defaultnix"><a class="header" href="#packagesm365defaultnix">packages/m365/default.nix</a></h3>
+<pre><code class="language-nix">{ lib, pkgs, python3Packages, ... }:
+
+python3Packages.buildPythonApplication {
+  pname = "m365";
+  version = "1.0.0";
+  src = ./src;
+
+  propagatedBuildInputs = with python3Packages; [
+    msal
+  ];
+
+  format = "other";
+
+  installPhase = ''
+    mkdir -p $out/bin
+    install -m755 m365-refresh.py $out/bin/m365-refresh.py
+  '';
+
+  meta = with lib; {
+    description = "Refresh oauth2 access token using MSAL";
+    platforms = platforms.linux;
+  };
+}
+</code></pre>
+<p><code>buildPythonApplication</code> va s'occuper de créér un wrapper pour
+surcharger le shebang du script, et bien être en isolation par
+rapport au système.</p>
+<p>Il va gérer l'installation du package python <code>msal</code>.</p>
+<p>Le script python en lui-même : <a href="https://github.com/gfriloux/nix-m365/blob/c4f523c05fb1e0ec99a0d1efc41b153fd23eca71/packages/m365/src/m365-refresh.py">src/m365-refresh.py</a></p>
+<h3 id="modulesm365defaultnix"><a class="header" href="#modulesm365defaultnix">modules/m365/default.nix</a></h3>
+<pre><code class="language-nix">{ lib, config, pkgs, ...}:
+
+let
+  cfg = config.services.m365-refresh;
+in
+{
+  options.services.m365-refresh = {
+    enable = lib.mkEnableOption "m365 MSAL shit";
+    schedule = lib.mkOption {
+      type = lib.types.str;
+      default = "hourly";
+      description = "Systemd timer schedule";
+    };
+    config = lib.mkOption {
+      type = lib.types.str;
+      description = "path to configuration file";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+  	systemd.user.services.m365-refresh = {
+  	  Unit = {
+  	  	Description = "m365 MSAL shit";
+  	  };
+  	  Service = {
+  	  	Type = "oneshot";
+  	    ExecStart = "${pkgs.m365}/bin/m365-refresh.py --config ${cfg.config}";
+  	  };
+  	};
+
+  	systemd.user.timers.m365-refresh = {
+  	  Unit = {
+  	  	Description = "Timer for m365-refresh";
+  	  };
+  	  Timer = {
+  	  	OnCalendar = cfg.schedule;
+  	  	Persistent = true;
+  	  };
+  	  Install = {
+  	  	WantedBy = [ "timers.target" ];
+  	  };
+  	};
+  };
+}
+</code></pre>
+<p>C'est ce module qui va nous permettre, dans notre config
+<code>home-manager</code> de déclarer le service, avec la config
+dont on a besoin <a href="https://github.com/UvA-FNWI/M365-IMAP/blob/main/config.py">config.py</a>.</p>
+<p>Le bloc <code>options.services.m365-refresh</code> nous permet de définir
+les options qui seront configuration dans notre config
+<code>home-manager</code> (notamment l'emplacer du fichier <a href="https://github.com/UvA-FNWI/M365-IMAP/blob/main/config.py">config.py</a>).</p>
+<p>Ensuite, il s'agit de la déclaration du service systemd et son
+timer qui le déclenche.</p>
+<h3 id="overlaysm365defaultnix"><a class="header" href="#overlaysm365defaultnix">overlays/m365/default.nix</a></h3>
+<pre><code class="language-nix">{ channels, inputs, ... }:
+
+final: prev: {
+  m365 = inputs.self.packages.${final.system}.m365;
+}
+</code></pre>
+<p>Cet overlay ne mérite pas vraiment d'attention, il nous permet juste
+d'ajouter le package <code>m365</code> dans <code>pkgs</code>.</p>
+<h2 id="utilisation-du-module-1"><a class="header" href="#utilisation-du-module-1">Utilisation du module</a></h2>
+<h3 id="ajout-du-input-dans-flakenix-1"><a class="header" href="#ajout-du-input-dans-flakenix-1">Ajout du input dans flake.nix</a></h3>
+<pre><code class="language-nix">sshtui = {
+  url = "github:gfriloux/nix-m365";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
+</code></pre>
+<h3 id="déclaration-du-module-home-manager-1"><a class="header" href="#déclaration-du-module-home-manager-1">Déclaration du module home-manager</a></h3>
+<pre><code class="language-nix">modules = [
+  nix-m365.homeModules.m365
+];
+</code></pre>
+<h3 id="installation-du-service"><a class="header" href="#installation-du-service">Installation du service</a></h3>
+<pre><code class="language-nix">services = {
+  m365-refresh = {
+    enable = true;
+    schedule = "hourly";
+    config = "/home/kuri/.config/m365/config.py";
+  };
+};
+</code></pre>
+<h2 id="vérification"><a class="header" href="#vérification">Vérification</a></h2>
+<h3 id="service-systemd"><a class="header" href="#service-systemd">Service systemd</a></h3>
+<pre><code> kuri@Nomad  ~  11:29  systemctl --user status m365-refresh
+○ m365-refresh.service - m365 MSAL shit
+     Loaded: loaded (/home/kuri/.config/systemd/user/m365-refresh.service; linked; preset: enabled)
+     Active: inactive (dead) since Wed 2026-01-07 11:00:46 CET; 29min ago
+ Invocation: 76d591c4f9cb4fd3b528e3de7b590869
+TriggeredBy: ● m365-refresh.timer
+    Process: 59019 ExecStart=/nix/store/i09rwnf3d1abavcmn0f4kz3gs5k370ax-m365-1.0.0/bin/m365-refresh.py --config /home/kuri/.config/m365/config.py (code=exited, status=0/SUCCESS)
+   Main PID: 59019 (code=exited, status=0/SUCCESS)
+   Mem peak: 49.1M
+        CPU: 227ms
+
+janv. 07 11:00:45 Nomad systemd[5477]: Starting m365 MSAL shit...
+janv. 07 11:00:46 Nomad systemd[5477]: Finished m365 MSAL shit.
+</code></pre>
+<h3 id="timer-systemd"><a class="header" href="#timer-systemd">Timer systemd</a></h3>
+<pre><code> kuri@Nomad  ~  11:29  systemctl --user list-timers
+NEXT                         LEFT LAST                           PASSED UNIT               ACTIVATES           
+Wed 2026-01-07 12:00:00 CET 29min Wed 2026-01-07 11:00:45 CET 29min ago m365-refresh.timer m365-refresh.service
+
+1 timers listed.
+Pass --all to see loaded but inactive timers, too.
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="systemd"><a class="header" href="#systemd">Systemd</a></h1>
 <p><a href="https://systemd.io/">systemd</a> est un ensemble d'outils servant de
 socle pour un système <code>GNU/Linux</code>.<br />
