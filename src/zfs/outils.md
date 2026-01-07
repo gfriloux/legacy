@@ -16,7 +16,7 @@ Supposons notre stack `/srv/docker/victim.org` vue sur la page
 de `docker-compose.yml` dans le temps, nous pouvons faire:
 
 ```
- $  /s/d/cloud.friloux.me  httm docker-compose.yml
+ $  /s/d/victim.org  httm docker-compose.yml
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 Sun Nov 02 17:04:30 2025 UTC  2.9 KiB  "/srv/docker/victim.org/.zfs/snapshot/zrepl_20251225_060837_000/docker-compose.yml"
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
