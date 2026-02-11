@@ -721,6 +721,55 @@ flakes.</p>
 started with home manager with flakes and all that 2024 goodness.</li>
 <li><a href="https://home-manager-options.extranix.com/">Home Manager - Option Search</a>.</li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="templates"><a class="header" href="#templates">templates</a></h1>
+<p>Les templates sont des <code>nix flake</code> qui servent de base pour des types
+de projets.</p>
+<p>Dans mon cas, il s'agit de mettre en place mon environnement de travail
+rapidement.</p>
+<h2 id="exemples"><a class="header" href="#exemples">exemples</a></h2>
+<h3 id="roles-ansibles"><a class="header" href="#roles-ansibles">roles ansibles</a></h3>
+<p>Dans le cas de l'écriture de roles ansibles,
+je veux disposer de certains outils:</p>
+<ul>
+<li><a href="https://docs.ansible.com/projects/lint/">ansible-lint</a></li>
+<li><a href="https://github.com/gitleaks/gitleaks">gitleaks</a></li>
+<li><a href="https://github.com/koalaman/shellcheck">shellcheck</a> (optionel)</li>
+<li><a href="https://github.com/mvdan/sh">shfmt</a> (optionel)</li>
+</ul>
+<p>Je ne veux pas forcément les avoir à disposition, mais je souhaite
+qu'ils soient utilisés pour valider mes commits, afin de
+m'empêcher de pousser du (trop) mauvais code.</p>
+<p>j'ai pour cela un <code>template</code> qui me permet de déployer un
+env : <a href="https://github.com/gfriloux/nix-templates/tree/8c6a8bde6e53db281ed5b125cb11655e4e6edff3/templates/ansible-role">gfriloux/nix-templates#ansible-role</a>.</p>
+<p>Celui déploie:</p>
+<ul>
+<li>Un env de dev avec:
+<ul>
+<li><a href="https://docs.ansible.com/projects/lint/">ansible-lint</a></li>
+<li><a href="https://github.com/pre-commit/pre-commit">pre-commit</a>: Pour déclencher les batteries de test avant <code>git commit</code>.</li>
+<li><a href="https://github.com/charmbracelet/glow">glow</a>: Pour afficher un petit <code>README</code> quand l'env se charge.</li>
+</ul>
+</li>
+<li>Des checks <code>nix</code> qui seront executés avant chaque <code>git commit</code>:
+<ul>
+<li><a href="https://docs.ansible.com/projects/lint/">ansible-lint</a></li>
+<li><a href="https://github.com/gitleaks/gitleaks">gitleaks</a></li>
+<li><a href="https://github.com/koalaman/shellcheck">shellcheck</a></li>
+<li><a href="https://github.com/mvdan/sh">shfmt</a></li>
+</ul>
+</li>
+</ul>
+<p>Pour cela, lorsque je commence à écrire un nouveau
+role ansible, je fais:</p>
+<pre><code>nix flake init --template github:gfriloux/nix-templates#ansible-role
+</code></pre>
+<p>Qui m'installe le template.<br />
+Je peux maintenant charger l'env:</p>
+<pre><code>direnv allow
+</code></pre>
+<p>Et je peux déjà lancer mes tests avec la commande:</p>
+<pre><code>nix flake check
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="les-cas-pratiques-1"><a class="header" href="#les-cas-pratiques-1">Les cas pratiques</a></h1>
 <ul>
 <li><a href="nix/sshtui.html">sshtui</a> - Packager un script bash.</li>
