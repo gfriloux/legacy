@@ -16,6 +16,7 @@
   - [flakes](nix/flakes.md)
   - [direnv](nix/direnv.md)
   - [home-manager](nix/home-manager.md)
+  - [templates](nix/templates.md)
   - [Les cas pratiques](./nix/technical.md)
     - [sshtui](nix/sshtui.md)
     - [m365-refresh](nix/m365-refresh.md)
